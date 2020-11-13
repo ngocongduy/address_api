@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     # api
     url(r'^api/v1/compare/$', views.post_address_compare , name='post_address_compare'),
+    url(r'^api/v1/compare-list/$', views.post_address_compare_list , name='post_address_compare_list'),
 ]

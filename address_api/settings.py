@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = '-whantfi*jom0j@(bd0zr2h@uen9asgq_s@p(gswslcqjloc@@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -70,7 +70,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'address_api.wsgi.application'
-
+DJANGO_LOG_LEVEL="INFO"
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
@@ -80,6 +80,42 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    # 'formatters': {
+    #     'console': {
+    #         'format': '%(name)-12s %(levelname)-8s %(message)s'
+    #     },
+    #     'file': {
+    #         'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+    #     }
+    # },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': './logs/data.log',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    # 'root': {
+    #     'handlers': ['console'],
+    #     'level': 'INFO',
+    # }
+    # ,
+    'loggers': {
+        'django': {
+            'handlers': ['file','console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
 }
 
 
