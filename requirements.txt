@@ -5,3 +5,12 @@ djangorestframework==3.11.1
 Unidecode==1.1.1
 python-Levenshtein==0.12.0
 fuzzywuzzy==0.18.0
+
+requests
+geopy==2.0.0
+aiohttp==3.7.3
+
+django-elasticsearch-dsl==7.1.4
+elasticsearch==7.10.0
+elasticsearch-dsl==7.3.0
+python-dotenv==0.15.0
