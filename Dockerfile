@@ -5,5 +5,6 @@ WORKDIR /code
 COPY requirements.txt /code/
 RUN pip install -r requirements.txt
 COPY . /code/
-RUN mkdir /logs
+# Assure a logs folder in working dir otherwise the server will fail to run
+RUN mkdir ./logs
 RUN ls
