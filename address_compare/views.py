@@ -33,6 +33,16 @@ logging.basicConfig(level=logging.INFO)
 comparer = address_comparison.AddressComparer()
 
 
+def remove_some_value(compare_result):
+    key_to_remove = {'count','type','addr1_pos','addr2_pos'}
+    if type(compare_result) is dict:
+        for k in key_to_remove:
+            try:
+                compare_result.pop(k)
+            except:
+                pass
+    return compare_result
+
 @api_view(['GET'])
 def index(request):
     return HttpResponse("Hello, world!")
@@ -51,9 +61,9 @@ def post_address_compare(request):
         msg = str(compare_result)
         print(msg)
         # logger.debug("Data: ".format(msg))
+        compare_result = remove_some_value(compare_result)
         return Response(compare_result, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['POST'])
 def post_address_compare_list(request):
@@ -77,6 +87,7 @@ def post_address_compare_list(request):
 
                     compare_result = comparer.fuzzy_compare(addr_1, addr_2)
                     logger.info(compare_result)
+                    compare_result = remove_some_value(compare_result)
                     result_list.append(compare_result)
                 else:
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
