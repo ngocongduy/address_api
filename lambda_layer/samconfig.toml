@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "address-compare-api"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1sd0k50un2lnl"
+s3_prefix = "address-compare-api"
+region = "ap-southeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_NAMED_IAM"
+parameter_overrides = "CorsOrigin=\"'http://localhost:3000'\" CorsMethods=\"'*'\" CorsHeaders=\"'Content-Type,X-Amz-Date,Authorization,X-Api-Key'\" SwaggerS3File=\"./some_swagger_file.yaml\" StageName=\"Dev\""

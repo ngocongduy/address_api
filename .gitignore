@@ -49,3 +49,5 @@ Thumbs.db
 *.mov
 *.wmv
 
+# For aws sam
+lambda_layer/build_layer_working_dir/temp

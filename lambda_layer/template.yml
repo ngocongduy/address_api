@@ -1,0 +1,150 @@
+Transform: AWS::Serverless-2016-10-31
+
+Description: API -> Lambda
+
+Parameters:
+  CorsOrigin:
+    Description: Header Access-Control-Allow-Origin
+    Default: "'http://localhost:3000'"
+    Type: String
+  CorsMethods:
+    Description: Header Access-Control-Allow-Headers
+    Default: "'*'"
+    Type: String
+  CorsHeaders:
+    Description: Header Access-Control-Allow-Headers
+    Default: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+    Type: String
+  SwaggerS3File:
+    Description: 'S3 "swagger.yaml" file location'
+    Default: "./some_swagger_file.yaml"
+    Type: String
+  StageName:
+    Description: 'Name of the deployment stage'
+    Default: "Dev"
+    Type: String
+
+Globals:
+  Function:
+    Timeout: 60
+    Runtime: python3.8
+    MemorySize: 512
+
+Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Principal:
+              Service: lambda.amazonaws.com
+      Policies:
+        - PolicyName: WriteCloudWatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+
+#  ApiGatewayLambdaRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      Path: !Join ["", ["/", !Ref "AWS::StackName", "/"]]
+#      AssumeRolePolicyDocument:
+#        Version: 2012-10-17
+#        Statement:
+#          - Sid: AllowApiGatewayServiceToAssumeRole
+#            Effect: Allow
+#            Action:
+#              - 'sts:AssumeRole'
+#            Principal:
+#              Service:
+#                - apigateway.amazonaws.com
+#      Policies:
+#        - PolicyName: "LambdaExecutionPolicy"
+#          PolicyDocument:
+#            Version: "2012-10-17"
+#            Statement:
+#              - Effect: "Allow"
+#                Action: "lambda:InvokeFunction"
+#                Resource: arn:aws:lambda:*:*:*
+#        - PolicyName: WriteCloudWatchLogs
+#          PolicyDocument:
+#            Version: "2012-10-17"
+#            Statement:
+#              - Effect: Allow
+#                Action:
+#                  - logs:CreateLogGroup
+#                  - logs:CreateLogStream
+#                  - logs:PutLogEvents
+#                Resource: arn:aws:logs:*:*:*
+
+  AddressComparisonFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-compare
+      CodeUri: functions/AddressComparisonFunction
+      Handler: AddressComparisonFunction.app.lambda_handler
+      Description: Function to compare address one to one
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 20
+      Layers:
+        - !Ref LambdaLayerBaseModule
+      Events:
+        PostCompare:
+          Type: Api
+          Properties:
+            Path: /compare
+            Method: post
+            RestApiId: !Ref InboundApi
+
+  LambdaLayerBaseModule:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - python3.8
+      Content:
+        S3Bucket: handmade-lambda-layers
+        S3Key: base_modules_for_address_comparison.zip
+      Description: Include all base modules
+      LayerName: base_modules_for_address_comparison
+
+  InboundApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Name: !Sub ${AWS::StackName}-api
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          Description: Usage plan for this API
+          Quota:
+            Limit: 500
+            Period: MONTH
+          Throttle:
+            BurstLimit: 100
+            RateLimit: 50
+#          Tags:
+#            - Key: TagName
+#              Value: TagValue
+
+#      DefinitionBody:
+#        'Fn::Transform':
+#          Name: AWS::Include
+#          Parameters:
+#            # s3 location of the swagger file
+#            Location: s3://my-api-documents/swagger_api_sqs.yaml
+
+Outputs:
+  ApiToCall:
+    Description: "API Gateway endpoint"
+    Value: !Sub "https://${InboundApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/"
